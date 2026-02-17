@@ -36,11 +36,23 @@ body {
 /* Hero Section */
 .hero {
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 50%, #003366 100%);
+    background: var(--navy-dark);
     position: relative;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+.hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.6;
+    filter: brightness(0.7);
 }
 
 .hero-overlay {
@@ -351,6 +363,22 @@ body {
 .players-section {
     padding: 100px 0;
     background: linear-gradient(180deg, var(--navy) 0%, var(--navy-dark) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.players-bg {
+    position: absolute;
+    right: -100px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.players-bg img {
+    width: 600px;
+    height: auto;
 }
 
 .players-grid {
@@ -483,6 +511,43 @@ body {
     border-color: var(--gold);
     background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255,255,255,0.02));
     box-shadow: 0 0 40px rgba(255, 215, 0, 0.2);
+    padding: 40px;
+}
+
+.superbowl-content {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.superbowl-info {
+    flex: 1;
+}
+
+.superbowl-trophy {
+    flex-shrink: 0;
+}
+
+.superbowl-trophy img {
+    height: 250px;
+    width: auto;
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.5));
+    animation: trophy-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes trophy-glow {
+    from { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3)); }
+    to { filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.6)); }
+}
+
+@media (max-width: 768px) {
+    .superbowl-content {
+        flex-direction: column;
+    }
+    
+    .superbowl-trophy img {
+        height: 180px;
+    }
 }
 
 .game-round {
