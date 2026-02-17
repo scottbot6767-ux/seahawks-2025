@@ -163,9 +163,23 @@ body {
     50% { transform: translateY(-10px); }
 }
 
-.trophy {
-    font-size: 32px;
+.badge-icon {
+    width: 32px;
+    height: 32px;
     animation: spin 4s linear infinite;
+}
+
+.inline-icon {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.footer-icon {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
 }
 
 @keyframes spin {
@@ -322,8 +336,12 @@ body {
 }
 
 .stat-icon {
-    font-size: 48px;
     margin-bottom: 20px;
+}
+
+.stat-icon img {
+    width: 48px;
+    height: 48px;
 }
 
 .stat-card h3 {
