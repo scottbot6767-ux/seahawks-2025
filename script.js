@@ -1,80 +1,112 @@
-// Seahawks 2025 Championship Site - Interactive Elements
+/* SEAHAWKS 2025 — Interactive Features */
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Animate elements on scroll
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
+// 12th Man Meter - fills as you scroll
+function updateCrowdMeter() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollPercent = Math.min((scrollTop / docHeight) * 100, 100);
+    
+    const meter = document.getElementById('crowdMeter');
+    if (meter) {
+        meter.style.height = scrollPercent + '%';
+        
+        // Add glow intensity based on scroll
+        if (scrollPercent > 80) {
+            meter.style.boxShadow = '0 0 40px var(--action-green), 0 0 80px var(--action-green)';
+        } else if (scrollPercent > 50) {
+            meter.style.boxShadow = '0 0 30px var(--action-green)';
+        } else {
+            meter.style.boxShadow = '0 0 20px var(--action-green)';
+        }
+    }
+}
+
+// Staggered reveal on scroll
+function createObserver() {
+    const options = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
     };
 
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
+        entries.forEach((entry, index) => {
             if (entry.isIntersecting) {
-                entry.target.classList.add('animate-in');
-                
-                // Animate stat numbers
-                if (entry.target.classList.contains('stat-value') || 
-                    entry.target.classList.contains('pstat-value') ||
-                    entry.target.classList.contains('stat-number')) {
-                    animateNumber(entry.target);
-                }
+                // Add staggered delay
+                const delay = entry.target.dataset.delay || 0;
+                setTimeout(() => {
+                    entry.target.classList.add('revealed');
+                }, delay);
+                observer.unobserve(entry.target);
             }
         });
-    }, observerOptions);
+    }, options);
 
-    // Observe elements
-    document.querySelectorAll('.stat-card, .player-card, .playoff-game, .game-card').forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = 'all 0.6s ease';
-        observer.observe(el);
+    // Observe stat cards
+    document.querySelectorAll('.stat-card').forEach((card, i) => {
+        card.dataset.delay = i * 100;
+        card.classList.add('reveal-target');
+        observer.observe(card);
     });
 
-    // Add animate-in class styles
+    // Observe player cards
+    document.querySelectorAll('.player-card').forEach((card, i) => {
+        card.dataset.delay = i * 80;
+        card.classList.add('reveal-target');
+        observer.observe(card);
+    });
+
+    // Observe playoff games
+    document.querySelectorAll('.playoff-game').forEach((game, i) => {
+        game.dataset.delay = i * 150;
+        game.classList.add('reveal-target');
+        observer.observe(game);
+    });
+
+    // Observe schedule cards
+    document.querySelectorAll('.game-card').forEach((card, i) => {
+        card.dataset.delay = Math.floor(i / 6) * 50 + (i % 6) * 30;
+        card.classList.add('reveal-target');
+        observer.observe(card);
+    });
+}
+
+// Add reveal CSS dynamically
+function injectRevealStyles() {
     const style = document.createElement('style');
     style.textContent = `
-        .animate-in {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
+        .reveal-target {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .reveal-target.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .stat-card.reveal-target {
+            transform: translateY(40px) skewX(-2deg);
+        }
+        
+        .stat-card.revealed {
+            transform: translateY(0) skewX(-2deg);
+        }
+        
+        .playoff-game.reveal-target {
+            transform: translateY(30px) skewX(-2deg);
+        }
+        
+        .playoff-game.revealed {
+            transform: translateY(0) skewX(-2deg);
         }
     `;
     document.head.appendChild(style);
+}
 
-    // Number animation
-    function animateNumber(element) {
-        const text = element.textContent;
-        const num = parseFloat(text.replace(/[^0-9.]/g, ''));
-        
-        if (isNaN(num)) return;
-        
-        const suffix = text.replace(/[0-9.,]/g, '');
-        const hasDecimal = text.includes('.');
-        const duration = 1500;
-        const startTime = performance.now();
-        
-        function update(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const easeOut = 1 - Math.pow(1 - progress, 3);
-            const current = num * easeOut;
-            
-            if (hasDecimal) {
-                element.textContent = current.toFixed(1) + suffix;
-            } else {
-                element.textContent = Math.floor(current).toLocaleString() + suffix;
-            }
-            
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            } else {
-                element.textContent = text; // Reset to original
-            }
-        }
-        
-        requestAnimationFrame(update);
-    }
-
-    // Smooth scroll for nav links
+// Smooth scroll for nav links
+function setupSmoothScroll() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
@@ -87,83 +119,114 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+}
 
-    // Parallax effect on hero
+// Number counter animation for stats
+function animateNumbers() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                const target = parseInt(el.textContent.replace(/[^0-9]/g, ''));
+                const suffix = el.textContent.replace(/[0-9,]/g, '');
+                const duration = 1500;
+                const start = Date.now();
+                
+                const animate = () => {
+                    const elapsed = Date.now() - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Easing
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.floor(target * eased);
+                    
+                    el.textContent = current.toLocaleString() + suffix;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        el.textContent = target.toLocaleString() + suffix;
+                    }
+                };
+                
+                animate();
+                observer.unobserve(el);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    // Observe hero stat numbers
+    document.querySelectorAll('.stat-number').forEach(el => {
+        observer.observe(el);
+    });
+
+    // Observe stat values
+    document.querySelectorAll('.stat-value').forEach(el => {
+        observer.observe(el);
+    });
+}
+
+// Parallax effect for hero background
+function setupParallax() {
+    const heroBg = document.querySelector('.hero-bg');
+    if (!heroBg) return;
+
     window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const hero = document.querySelector('.hero-content');
-        const trophy = document.querySelector('.trophy-glow');
-        
-        if (hero && scrolled < window.innerHeight) {
-            hero.style.transform = `translateY(${scrolled * 0.3}px)`;
-            hero.style.opacity = 1 - (scrolled / window.innerHeight);
-        }
-        
-        if (trophy && scrolled < window.innerHeight) {
-            trophy.style.transform = `translate(-50%, -50%) scale(${1 + scrolled * 0.0005})`;
-        }
-    });
+        const scrolled = window.scrollY;
+        const rate = scrolled * 0.3;
+        heroBg.style.transform = `translateY(${rate}px)`;
+    }, { passive: true });
+}
 
-    // Add hover sound effect to game cards (visual feedback)
-    document.querySelectorAll('.game-card.win').forEach(card => {
+// Nav background on scroll
+function setupNavScroll() {
+    const nav = document.querySelector('.nav');
+    if (!nav) return;
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 100) {
+            nav.style.background = 'rgba(0, 8, 16, 0.95)';
+            nav.style.backdropFilter = 'blur(20px)';
+            nav.style.borderBottom = '1px solid rgba(105, 190, 40, 0.2)';
+        } else {
+            nav.style.background = 'transparent';
+            nav.style.backdropFilter = 'none';
+            nav.style.borderBottom = 'none';
+        }
+    }, { passive: true });
+}
+
+// Player card hover sound effect (optional visual feedback)
+function setupCardHovers() {
+    document.querySelectorAll('.player-card, .stat-card').forEach(card => {
         card.addEventListener('mouseenter', () => {
-            card.style.boxShadow = '0 0 30px rgba(105, 190, 40, 0.4)';
+            // Could add sound here if desired
+            card.style.willChange = 'transform';
         });
+        
         card.addEventListener('mouseleave', () => {
-            card.style.boxShadow = '';
+            card.style.willChange = 'auto';
         });
     });
+}
 
-    // Trophy confetti effect on Super Bowl card hover
-    const superbowlCard = document.querySelector('.playoff-game.superbowl');
-    if (superbowlCard) {
-        superbowlCard.addEventListener('mouseenter', () => {
-            createConfetti(superbowlCard);
-        });
-    }
-
-    function createConfetti(container) {
-        const colors = ['#69BE28', '#FFD700', '#FFFFFF', '#002244'];
-        
-        for (let i = 0; i < 20; i++) {
-            const confetti = document.createElement('div');
-            confetti.style.cssText = `
-                position: absolute;
-                width: 8px;
-                height: 8px;
-                background: ${colors[Math.floor(Math.random() * colors.length)]};
-                top: 50%;
-                left: 50%;
-                pointer-events: none;
-                border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
-                animation: confetti-fall ${1 + Math.random()}s ease-out forwards;
-                transform: translate(${(Math.random() - 0.5) * 200}px, ${(Math.random() - 0.5) * 200}px);
-            `;
-            container.style.position = 'relative';
-            container.style.overflow = 'visible';
-            container.appendChild(confetti);
-            
-            setTimeout(() => confetti.remove(), 1500);
-        }
-    }
-
-    // Add confetti animation
-    const confettiStyle = document.createElement('style');
-    confettiStyle.textContent = `
-        @keyframes confetti-fall {
-            0% {
-                opacity: 1;
-                transform: translate(0, 0) rotate(0deg);
-            }
-            100% {
-                opacity: 0;
-                transform: translate(var(--x, 100px), var(--y, 100px)) rotate(720deg);
-            }
-        }
-    `;
-    document.head.appendChild(confettiStyle);
-
-    // Console easter egg
-    console.log('%c🏆 GO HAWKS! 🦅', 'font-size: 24px; color: #69BE28; background: #002244; padding: 10px;');
-    console.log('%c2025 SUPER BOWL CHAMPIONS', 'font-size: 14px; color: #FFD700;');
+// Initialize everything
+document.addEventListener('DOMContentLoaded', () => {
+    injectRevealStyles();
+    createObserver();
+    setupSmoothScroll();
+    animateNumbers();
+    setupParallax();
+    setupNavScroll();
+    setupCardHovers();
 });
+
+// Update crowd meter on scroll
+window.addEventListener('scroll', updateCrowdMeter, { passive: true });
+
+// Initial meter update
+updateCrowdMeter();
+
+// Console easter egg
+console.log('%c🦅 GO HAWKS! 🏆', 'color: #69BE28; font-size: 24px; font-weight: bold;');
+console.log('%c2025 SUPER BOWL CHAMPIONS', 'color: #D4AF37; font-size: 14px;');
